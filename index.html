@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Clock</title>
+<style>
+  :root {
+    --fg: oklch(0.22 0.01 250);
+    --fg-muted: oklch(0.45 0.01 250);
+    --fg-faint: oklch(0.65 0.008 250);
+    --surface: oklch(0.985 0.003 250);
+    --surface-2: oklch(0.96 0.005 250);
+    --border: oklch(0.88 0.005 250);
+    --accent: oklch(0.62 0.08 240);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  body {
+    background: var(--surface);
+    position: relative;
+    display: grid;
+    place-items: center;
+    transition: background 600ms ease;
+  }
+
+  /* gradient layer */
+  .bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    opacity: 1;
+    transition: opacity 800ms ease;
+  }
+  body.bg-off .bg { opacity: 0; }
+
+  .bg::before,
+  .bg::after,
+  .bg .blob {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    will-change: transform;
+  }
+
+  .bg::before {
+    width: 60vmax;
+    height: 60vmax;
+    left: -15vmax;
+    top: -20vmax;
+    background: radial-gradient(circle at 30% 30%, oklch(0.88 0.07 240 / 0.85), transparent 60%);
+    animation: drift1 24s ease-in-out infinite alternate;
+  }
+  .bg::after {
+    width: 55vmax;
+    height: 55vmax;
+    right: -18vmax;
+    bottom: -22vmax;
+    background: radial-gradient(circle at 60% 60%, oklch(0.9 0.06 320 / 0.8), transparent 60%);
+    animation: drift2 30s ease-in-out infinite alternate;
+  }
+  .bg .blob {
+    width: 45vmax;
+    height: 45vmax;
+    left: 30%;
+    top: 30%;
+    background: radial-gradient(circle, oklch(0.92 0.05 180 / 0.55), transparent 60%);
+    animation: drift3 36s ease-in-out infinite alternate;
+  }
+
+  @keyframes drift1 {
+    0%   { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(8vmax, 6vmax) scale(1.08); }
+  }
+  @keyframes drift2 {
+    0%   { transform: translate(0, 0) scale(1.05); }
+    100% { transform: translate(-6vmax, -4vmax) scale(0.95); }
+  }
+  @keyframes drift3 {
+    0%   { transform: translate(-10vmax, -6vmax) scale(0.95); }
+    100% { transform: translate(10vmax, 8vmax) scale(1.1); }
+  }
+
+  /* clock */
+  .clock {
+    text-align: center;
+    user-select: none;
+    padding: 0 24px;
+  }
+
+  .time {
+    font-size: clamp(64px, 16vw, 220px);
+    font-weight: 200;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--fg);
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+  }
+
+  .time .sep {
+    opacity: 0.35;
+    margin: 0 0.04em;
+    font-weight: 200;
+  }
+
+  .time .seconds {
+    font-size: 0.6em;
+    margin-left: 0.08em;
+    color: var(--fg-muted);
+    font-weight: 300;
+    transition: opacity 400ms ease, max-width 400ms ease, margin 400ms ease;
+    overflow: hidden;
+    white-space: nowrap;
+    display: inline-block;
+    max-width: 4em;
+    padding-right: 0.05em;
+  }
+  body.no-seconds .time .seconds {
+    opacity: 0;
+    max-width: 0;
+    margin-left: 0;
+  }
+
+  .date {
+    margin-top: 28px;
+    font-size: clamp(13px, 1.4vw, 18px);
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .date .dow {
+    margin-left: 6px;
+    color: var(--fg-faint);
+  }
+
+  /* settings button */
+  .gear-btn {
+    position: fixed;
+    top: 22px;
+    right: 22px;
+    width: 38px;
+    height: 38px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--fg-faint);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: color 200ms, background 200ms, border-color 200ms, transform 300ms;
+    z-index: 10;
+  }
+  .gear-btn:hover {
+    color: var(--fg);
+    background: oklch(1 0 0 / 0.5);
+    border-color: var(--border);
+    transform: rotate(45deg);
+  }
+  .gear-btn svg { width: 18px; height: 18px; }
+
+  /* settings panel */
+  .panel {
+    position: fixed;
+    top: 70px;
+    right: 22px;
+    width: 260px;
+    background: oklch(1 0 0 / 0.85);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 8px;
+    box-shadow: 0 20px 50px -20px oklch(0.2 0.02 250 / 0.25),
+                0 4px 12px -4px oklch(0.2 0.02 250 / 0.1);
+    z-index: 11;
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+    pointer-events: none;
+    transition: opacity 220ms ease, transform 220ms ease;
+  }
+  .panel.open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+
+  .panel-header {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--fg-faint);
+    padding: 10px 12px 6px;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 150ms;
+  }
+  .row:hover { background: oklch(0.95 0.005 250 / 0.7); }
+  .row-label {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--fg);
+  }
+  .row-hint {
+    font-size: 11px;
+    color: var(--fg-faint);
+    margin-top: 2px;
+    letter-spacing: 0.02em;
+  }
+
+  /* toggle */
+  .toggle {
+    width: 36px;
+    height: 20px;
+    background: oklch(0.85 0.005 250);
+    border-radius: 999px;
+    position: relative;
+    transition: background 200ms ease;
+    flex-shrink: 0;
+  }
+  .toggle::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px oklch(0.2 0.02 250 / 0.2);
+    transition: transform 220ms cubic-bezier(0.4, 0.0, 0.2, 1);
+  }
+  .row.on .toggle {
+    background: var(--accent);
+  }
+  .row.on .toggle::after {
+    transform: translateX(16px);
+  }
+
+  /* dark-ish gradient-off mode keeps content readable */
+  body.bg-off {
+    background: var(--surface);
+  }
+
+  @media (max-width: 480px) {
+    .panel { width: calc(100vw - 28px); right: 14px; }
+    .gear-btn { top: 14px; right: 14px; }
+    .date { margin-top: 18px; }
+  }
+</style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true"><div class="blob"></div></div>
+
+  <main class="clock" role="main">
+    <div class="time" id="time" aria-live="polite">
+      <span id="hh">00</span><span class="sep">:</span><span id="mm">00</span><span class="seconds"><span class="sep">:</span><span id="ss">00</span></span>
+    </div>
+    <div class="date">
+      <span id="date">----/--/--</span><span class="dow" id="dow">(-)</span>
+    </div>
+  </main>
+
+  <button class="gear-btn" id="gear" aria-label="設定" aria-expanded="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"></circle>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    </svg>
+  </button>
+
+  <div class="panel" id="panel" role="dialog" aria-label="表示設定">
+    <div class="panel-header">表示設定</div>
+    <div class="row" id="row-seconds" role="switch" aria-checked="true" tabindex="0">
+      <div>
+        <div class="row-label">秒を表示</div>
+        <div class="row-hint">HH:MM:SS / HH:MM</div>
+      </div>
+      <div class="toggle" aria-hidden="true"></div>
+    </div>
+    <div class="row" id="row-bg" role="switch" aria-checked="true" tabindex="0">
+      <div>
+        <div class="row-label">背景グラデーション</div>
+        <div class="row-hint">淡く漂う背景のON/OFF</div>
+      </div>
+      <div class="toggle" aria-hidden="true"></div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  const pad = (n) => String(n).padStart(2, '0');
+  const DOW = ['日', '月', '火', '水', '木', '金', '土'];
+
+  const hh = document.getElementById('hh');
+  const mm = document.getElementById('mm');
+  const ss = document.getElementById('ss');
+  const dateEl = document.getElementById('date');
+  const dowEl = document.getElementById('dow');
+
+  function tick() {
+    const d = new Date();
+    hh.textContent = pad(d.getHours());
+    mm.textContent = pad(d.getMinutes());
+    ss.textContent = pad(d.getSeconds());
+    dateEl.textContent = `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())}`;
+    dowEl.textContent = `(${DOW[d.getDay()]})`;
+  }
+  tick();
+  // align to next second
+  setTimeout(() => {
+    tick();
+    setInterval(tick, 1000);
+  }, 1000 - (Date.now() % 1000));
+
+  // settings
+  const STORE_KEY = 'simple-clock-settings';
+  const defaults = { showSeconds: true, showBg: true };
+  let state = { ...defaults };
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) state = { ...defaults, ...JSON.parse(raw) };
+  } catch (e) {}
+
+  const body = document.body;
+  const rowSeconds = document.getElementById('row-seconds');
+  const rowBg = document.getElementById('row-bg');
+
+  function apply() {
+    body.classList.toggle('no-seconds', !state.showSeconds);
+    body.classList.toggle('bg-off', !state.showBg);
+    rowSeconds.classList.toggle('on', state.showSeconds);
+    rowSeconds.setAttribute('aria-checked', String(state.showSeconds));
+    rowBg.classList.toggle('on', state.showBg);
+    rowBg.setAttribute('aria-checked', String(state.showBg));
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  apply();
+
+  function bindToggle(el, key) {
+    const flip = () => { state[key] = !state[key]; apply(); };
+    el.addEventListener('click', flip);
+    el.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); }
+    });
+  }
+  bindToggle(rowSeconds, 'showSeconds');
+  bindToggle(rowBg, 'showBg');
+
+  // panel open/close
+  const gear = document.getElementById('gear');
+  const panel = document.getElementById('panel');
+  let open = false;
+  function setOpen(v) {
+    open = v;
+    panel.classList.toggle('open', open);
+    gear.setAttribute('aria-expanded', String(open));
+  }
+  gear.addEventListener('click', (e) => {
+    e.stopPropagation();
+    setOpen(!open);
+  });
+  document.addEventListener('click', (e) => {
+    if (!open) return;
+    if (!panel.contains(e.target) && e.target !== gear) setOpen(false);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && open) setOpen(false);
+  });
+})();
+</script>
+</body>
+</html>
