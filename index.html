@@ -379,12 +379,56 @@
     font-weight: 200;
   }
 
+  .sw-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .sw-chevron {
+    width: 30px;
+    height: 30px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--fg-faint);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    align-self: flex-end;
+    margin-bottom: 6px;
+    transition: color 180ms, background 180ms, border-color 180ms;
+  }
+  .sw-chevron:hover {
+    color: var(--fg-muted);
+    background: oklch(1 0 0 / 0.5);
+    border-color: var(--border);
+  }
+  .sw-chevron svg {
+    width: 14px;
+    height: 14px;
+    transition: transform 240ms ease;
+  }
+  .sw-chevron.open svg { transform: rotate(90deg); }
+
   .sw-adjust {
-    margin-top: 20px;
     display: flex;
     gap: 6px;
     justify-content: center;
     flex-shrink: 0;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 260ms ease, opacity 200ms ease, margin-top 260ms ease;
+    margin-top: 0;
+  }
+  .sw-adjust.open {
+    max-height: 48px;
+    opacity: 1;
+    margin-top: 18px;
   }
 
   .adj-btn {
@@ -748,6 +792,84 @@
     .history-view { padding: 70px 16px 36px; }
     .ctrl-btn { height: 44px; padding: 0 22px; }
   }
+
+  /* ── Dark mode ─────────────────────────────────────────────── */
+  body { transition: background-color 400ms ease; }
+
+  body.dark {
+    --fg:       oklch(0.92 0.006 250);
+    --fg-muted: oklch(0.62 0.006 250);
+    --fg-faint: oklch(0.40 0.008 250);
+    --surface:  oklch(0.13 0.01 250);
+    --surface-2:oklch(0.19 0.01 250);
+    --border:   oklch(0.28 0.012 250);
+    --accent:   oklch(0.68 0.10 240);
+    color-scheme: dark;
+  }
+
+  body.dark .bg::before {
+    background: radial-gradient(circle at 30% 30%, oklch(0.28 0.07 240 / 0.6), transparent 60%);
+  }
+  body.dark .bg::after {
+    background: radial-gradient(circle at 60% 60%, oklch(0.26 0.06 320 / 0.55), transparent 60%);
+  }
+  body.dark .bg .blob {
+    background: radial-gradient(circle, oklch(0.22 0.05 180 / 0.45), transparent 60%);
+  }
+
+  body.dark .panel {
+    background: oklch(0.18 0.01 250 / 0.92);
+  }
+  body.dark .row:hover {
+    background: oklch(0.28 0.01 250 / 0.7);
+  }
+  body.dark .toggle {
+    background: oklch(0.32 0.01 250);
+  }
+
+  body.dark .nav-pill:hover,
+  body.dark .aux-btn:hover,
+  body.dark .gear-btn:hover,
+  body.dark .sw-chevron:hover {
+    background: oklch(0.28 0.01 250 / 0.7);
+  }
+
+  body.dark .task-input {
+    background: oklch(0.19 0.01 250 / 0.8);
+  }
+
+  body.dark .history-item {
+    background: oklch(0.19 0.01 250 / 0.65);
+  }
+
+  body.dark .adj-btn {
+    background: oklch(0.19 0.01 250 / 0.65);
+  }
+
+  body.dark .ctrl-secondary {
+    background: oklch(0.22 0.01 250 / 0.7);
+  }
+
+  body.dark .export-btn {
+    background: oklch(0.22 0.01 250 / 0.65);
+  }
+
+  body.dark .export-modal {
+    background: oklch(0.08 0.01 250 / 0.55);
+  }
+
+  body.dark .export-dialog {
+    background: oklch(0.16 0.01 250 / 0.96);
+    box-shadow: 0 24px 60px -16px oklch(0 0 0 / 0.5);
+  }
+
+  body.dark .export-close:hover {
+    background: oklch(0.28 0.01 250 / 0.7);
+  }
+
+  body.dark .history-delete:hover {
+    background: oklch(0.55 0.1 25 / 0.15);
+  }
 </style>
 </head>
 <body>
@@ -768,10 +890,15 @@
     <div class="focus-clock">
       <span id="fc-hh">00</span><span class="fc-sep">:</span><span id="fc-mm">00</span>
     </div>
-    <div class="stopwatch-display">
-      <span id="sw-h">00</span><span class="sw-sep">:</span><span id="sw-m">00</span><span class="sw-sep">:</span><span id="sw-s">00</span>
+    <div class="sw-row">
+      <div class="stopwatch-display">
+        <span id="sw-h">00</span><span class="sw-sep">:</span><span id="sw-m">00</span><span class="sw-sep">:</span><span id="sw-s">00</span>
+      </div>
+      <button class="sw-chevron" id="sw-chevron-btn" aria-label="時間を調整">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
     </div>
-    <div class="sw-adjust">
+    <div class="sw-adjust" id="sw-adjust">
       <button class="adj-btn" data-delta="-600">－10分</button>
       <button class="adj-btn" data-delta="-300">－5分</button>
       <button class="adj-btn" data-delta="-60">－1分</button>
@@ -856,6 +983,13 @@
       </div>
       <div class="toggle" aria-hidden="true"></div>
     </div>
+    <div class="row" id="row-dark" role="switch" aria-checked="false" tabindex="0">
+      <div>
+        <div class="row-label">ダークモード</div>
+        <div class="row-hint">暗い配色に切り替え</div>
+      </div>
+      <div class="toggle" aria-hidden="true"></div>
+    </div>
   </div>
 
 <script>
@@ -887,7 +1021,7 @@
 
   // ── Settings ───────────────────────────────────────────────
   const STORE_KEY = 'simple-clock-settings';
-  const defaults = { showSeconds: true, showBg: true };
+  const defaults = { showSeconds: true, showBg: true, darkMode: false };
   let state = { ...defaults };
   try {
     const raw = localStorage.getItem(STORE_KEY);
@@ -896,15 +1030,19 @@
 
   const body = document.body;
   const rowSeconds = document.getElementById('row-seconds');
-  const rowBg = document.getElementById('row-bg');
+  const rowBg      = document.getElementById('row-bg');
+  const rowDark    = document.getElementById('row-dark');
 
   function applySettings() {
     body.classList.toggle('no-seconds', !state.showSeconds);
-    body.classList.toggle('bg-off', !state.showBg);
+    body.classList.toggle('bg-off',     !state.showBg);
+    body.classList.toggle('dark',        state.darkMode);
     rowSeconds.classList.toggle('on', state.showSeconds);
     rowSeconds.setAttribute('aria-checked', String(state.showSeconds));
     rowBg.classList.toggle('on', state.showBg);
     rowBg.setAttribute('aria-checked', String(state.showBg));
+    rowDark.classList.toggle('on', state.darkMode);
+    rowDark.setAttribute('aria-checked', String(state.darkMode));
     try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
   }
   applySettings();
@@ -917,7 +1055,8 @@
     });
   }
   bindToggle(rowSeconds, 'showSeconds');
-  bindToggle(rowBg, 'showBg');
+  bindToggle(rowBg,      'showBg');
+  bindToggle(rowDark,    'darkMode');
 
   const gear = document.getElementById('gear');
   const panel = document.getElementById('panel');
@@ -1044,7 +1183,14 @@
 
   startStopBtn.addEventListener('click', () => { if (swRunning) stopSw(); else startSw(); });
 
-  document.querySelector('.sw-adjust').addEventListener('click', (e) => {
+  const swChevronBtn = document.getElementById('sw-chevron-btn');
+  const swAdjust     = document.getElementById('sw-adjust');
+  swChevronBtn.addEventListener('click', () => {
+    const open = swAdjust.classList.toggle('open');
+    swChevronBtn.classList.toggle('open', open);
+  });
+
+  swAdjust.addEventListener('click', (e) => {
     const btn = e.target.closest('.adj-btn');
     if (!btn) return;
     const delta = Number(btn.dataset.delta);
