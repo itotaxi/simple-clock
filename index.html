@@ -634,8 +634,6 @@
   }
 
   .history-delete {
-    grid-column: 3;
-    grid-row: 1 / 3;
     width: 28px;
     height: 28px;
     border: none;
@@ -646,7 +644,6 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    align-self: center;
     transition: color 150ms, background 150ms;
     flex-shrink: 0;
   }
@@ -655,6 +652,37 @@
     background: oklch(0.55 0.1 25 / 0.1);
   }
   .history-delete svg { width: 14px; height: 14px; pointer-events: none; }
+
+  .history-edit {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: var(--fg-faint);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: color 150ms, background 150ms;
+    flex-shrink: 0;
+  }
+  .history-edit:hover {
+    color: var(--accent);
+    background: oklch(0.62 0.08 240 / 0.1);
+  }
+  .history-edit svg { width: 14px; height: 14px; pointer-events: none; }
+
+  .history-actions {
+    grid-column: 3;
+    grid-row: 1 / 3;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+  }
 
   .history-empty {
     text-align: center;
@@ -793,6 +821,260 @@
     .ctrl-btn { height: 44px; padding: 0 22px; }
   }
 
+  /* ── Confirm modal ─────────────────────────────────────────── */
+  .confirm-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: oklch(0.2 0.01 250 / 0.25);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+  }
+  .confirm-modal.open { opacity: 1; pointer-events: auto; }
+
+  .confirm-dialog {
+    width: 100%;
+    max-width: 320px;
+    background: oklch(1 0 0 / 0.92);
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px 20px;
+    box-shadow: 0 20px 50px -12px oklch(0.2 0.02 250 / 0.25);
+    transform: scale(0.96) translateY(6px);
+    transition: transform 180ms ease;
+  }
+  .confirm-modal.open .confirm-dialog { transform: scale(1) translateY(0); }
+
+  .confirm-msg {
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--fg);
+    text-align: center;
+    line-height: 1.6;
+    margin-bottom: 22px;
+    white-space: pre-wrap;
+  }
+
+  .confirm-btns {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .confirm-cancel-btn {
+    height: 36px;
+    padding: 0 16px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--fg-muted);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 140ms;
+  }
+  .confirm-cancel-btn:hover { background: var(--surface-2); }
+
+  .confirm-ok-btn {
+    height: 36px;
+    padding: 0 18px;
+    border: none;
+    background: var(--accent);
+    color: white;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 140ms;
+  }
+  .confirm-ok-btn:hover { background: oklch(0.56 0.09 240); }
+  .confirm-ok-btn.danger { background: oklch(0.62 0.09 25); }
+  .confirm-ok-btn.danger:hover { background: oklch(0.55 0.1 25); }
+
+  /* ── Edit modal ─────────────────────────────────────────────── */
+  .edit-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: oklch(0.2 0.01 250 / 0.25);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+  }
+  .edit-modal.open { opacity: 1; pointer-events: auto; }
+
+  .edit-dialog {
+    width: 100%;
+    max-width: 460px;
+    background: oklch(1 0 0 / 0.92);
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: 0 24px 60px -16px oklch(0.2 0.02 250 / 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: scale(0.97) translateY(8px);
+    transition: transform 200ms ease;
+  }
+  .edit-modal.open .edit-dialog { transform: scale(1) translateY(0); }
+
+  .edit-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .edit-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--fg-muted);
+  }
+  .edit-close-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: var(--fg-faint);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: color 150ms, background 150ms;
+  }
+  .edit-close-btn:hover { color: var(--fg); background: var(--surface-2); }
+  .edit-close-btn svg { width: 14px; height: 14px; }
+
+  .edit-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .edit-field-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--fg-faint);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .edit-task-area {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 16px;
+    font-weight: 300;
+    font-family: inherit;
+    color: var(--fg);
+    resize: none;
+    outline: none;
+    line-height: 1.5;
+    min-height: 60px;
+    max-height: 120px;
+    transition: border-color 180ms, box-shadow 180ms;
+  }
+  .edit-task-area:focus {
+    border-color: oklch(0.62 0.08 240 / 0.6);
+    box-shadow: 0 0 0 3px oklch(0.62 0.08 240 / 0.1);
+  }
+
+  .edit-dur-input {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 18px;
+    font-weight: 200;
+    font-variant-numeric: tabular-nums;
+    font-family: inherit;
+    color: var(--fg);
+    outline: none;
+    letter-spacing: 0.06em;
+    transition: border-color 180ms, box-shadow 180ms;
+  }
+  .edit-dur-input:focus {
+    border-color: oklch(0.62 0.08 240 / 0.6);
+    box-shadow: 0 0 0 3px oklch(0.62 0.08 240 / 0.1);
+  }
+  .edit-dur-input.invalid {
+    border-color: oklch(0.62 0.09 25 / 0.7);
+    box-shadow: 0 0 0 3px oklch(0.62 0.09 25 / 0.12);
+  }
+
+  .edit-error {
+    font-size: 11px;
+    color: oklch(0.62 0.09 25);
+    margin-top: 4px;
+    display: block;
+    min-height: 16px;
+  }
+
+  .edit-footer {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .edit-cancel-btn {
+    height: 36px;
+    padding: 0 16px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--fg-muted);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 140ms;
+  }
+  .edit-cancel-btn:hover { background: var(--surface-2); }
+
+  .edit-save-btn {
+    height: 36px;
+    padding: 0 20px;
+    border: none;
+    background: var(--accent);
+    color: white;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 140ms;
+  }
+  .edit-save-btn:hover { background: oklch(0.56 0.09 240); }
+
   /* ── Dark mode ─────────────────────────────────────────────── */
   body { transition: background-color 400ms ease; }
 
@@ -870,6 +1152,28 @@
   body.dark .history-delete:hover {
     background: oklch(0.55 0.1 25 / 0.15);
   }
+
+  body.dark .confirm-dialog,
+  body.dark .edit-dialog {
+    background: oklch(0.16 0.01 250 / 0.96);
+    box-shadow: 0 24px 60px -16px oklch(0 0 0 / 0.5);
+  }
+  body.dark .confirm-modal,
+  body.dark .edit-modal {
+    background: oklch(0.08 0.01 250 / 0.5);
+  }
+  body.dark .confirm-cancel-btn:hover,
+  body.dark .edit-cancel-btn:hover,
+  body.dark .edit-close-btn:hover {
+    background: oklch(0.28 0.01 250 / 0.7);
+  }
+  body.dark .edit-task-area,
+  body.dark .edit-dur-input {
+    background: oklch(0.22 0.01 250 / 0.8);
+  }
+  body.dark .history-edit:hover {
+    background: oklch(0.62 0.08 240 / 0.15);
+  }
 </style>
 </head>
 <body>
@@ -937,6 +1241,44 @@
         </button>
       </div>
       <textarea class="export-textarea" id="export-textarea" readonly spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <!-- Confirm modal -->
+  <div class="confirm-modal" id="confirm-modal" aria-hidden="true">
+    <div class="confirm-dialog">
+      <p class="confirm-msg" id="confirm-msg"></p>
+      <div class="confirm-btns">
+        <button class="confirm-cancel-btn" id="confirm-cancel-btn">キャンセル</button>
+        <button class="confirm-ok-btn" id="confirm-ok-btn">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit modal -->
+  <div class="edit-modal" id="edit-modal" aria-hidden="true">
+    <div class="edit-dialog">
+      <div class="edit-header">
+        <span class="edit-title">ログを編集</span>
+        <button class="edit-close-btn" id="edit-close-btn" aria-label="閉じる">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="edit-body">
+        <div>
+          <label class="edit-field-label" for="edit-task-area">タスク名</label>
+          <textarea class="edit-task-area" id="edit-task-area" rows="2"></textarea>
+        </div>
+        <div>
+          <label class="edit-field-label" for="edit-dur-input">時間（HH:MM:SS）</label>
+          <input class="edit-dur-input" id="edit-dur-input" type="text" maxlength="8" placeholder="00:00:00" autocomplete="off" spellcheck="false">
+          <span class="edit-error" id="edit-error"></span>
+        </div>
+      </div>
+      <div class="edit-footer">
+        <button class="edit-cancel-btn" id="edit-cancel-btn">キャンセル</button>
+        <button class="edit-save-btn" id="edit-save-btn">保存</button>
+      </div>
     </div>
   </div>
 
@@ -1199,7 +1541,14 @@
     updateSwDisplay();
   });
 
-  nextTaskBtn.addEventListener('click', () => {
+  nextTaskBtn.addEventListener('click', async () => {
+    const ok = await showConfirm(
+      swElapsed > 0
+        ? '現在のタスクを記録して\n次のタスクへ移りますか？'
+        : '次のタスクへ移りますか？',
+      { confirmLabel: '次へ' }
+    );
+    if (!ok) return;
     saveToHistory();
     resetSw();
     taskInput.value = '';
@@ -1218,6 +1567,7 @@
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
+  const EDIT_SVG   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
   const DELETE_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>`;
 
   function renderHistory() {
@@ -1233,24 +1583,135 @@
         <div class="history-task">${escHtml(item.task)}</div>
         <div class="history-duration">${escHtml(item.duration)}</div>
         <div class="history-date">${escHtml(item.date)}</div>
-        <button class="history-delete" data-index="${i}" aria-label="削除">${DELETE_SVG}</button>
+        <div class="history-actions">
+          <button class="history-edit"   data-index="${i}" aria-label="編集">${EDIT_SVG}</button>
+          <button class="history-delete" data-index="${i}" aria-label="削除">${DELETE_SVG}</button>
+        </div>
       </div>
     `).join('');
   }
 
-  document.getElementById('history-list').addEventListener('click', (e) => {
-    const btn = e.target.closest('.history-delete');
-    if (!btn) return;
-    const idx = Number(btn.dataset.index);
+  // ── Confirm modal ───────────────────────────────────────────
+  const confirmModal     = document.getElementById('confirm-modal');
+  const confirmMsg       = document.getElementById('confirm-msg');
+  const confirmOkBtn     = document.getElementById('confirm-ok-btn');
+  const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+
+  function showConfirm(msg, { confirmLabel = 'OK', danger = false } = {}) {
+    return new Promise((resolve) => {
+      confirmMsg.textContent = msg;
+      confirmOkBtn.textContent = confirmLabel;
+      confirmOkBtn.classList.toggle('danger', danger);
+      confirmModal.classList.add('open');
+      confirmModal.setAttribute('aria-hidden', 'false');
+
+      function finish(result) {
+        confirmModal.classList.remove('open');
+        confirmModal.setAttribute('aria-hidden', 'true');
+        resolve(result);
+      }
+      confirmOkBtn.addEventListener('click',     () => finish(true),  { once: true });
+      confirmCancelBtn.addEventListener('click',  () => finish(false), { once: true });
+      confirmModal.addEventListener('click', (e) => {
+        if (e.target === confirmModal) finish(false);
+      }, { once: true });
+    });
+  }
+
+  // ── Edit modal ──────────────────────────────────────────────
+  const editModal     = document.getElementById('edit-modal');
+  const editCloseBtn  = document.getElementById('edit-close-btn');
+  const editCancelBtn = document.getElementById('edit-cancel-btn');
+  const editSaveBtn   = document.getElementById('edit-save-btn');
+  const editTaskArea  = document.getElementById('edit-task-area');
+  const editDurInput  = document.getElementById('edit-dur-input');
+  const editError     = document.getElementById('edit-error');
+  let editIndex = -1;
+
+  function isValidDuration(str) {
+    if (!/^\d{2}:\d{2}:\d{2}$/.test(str)) return false;
+    const [, m, s] = str.split(':').map(Number);
+    return m < 60 && s < 60;
+  }
+
+  editDurInput.addEventListener('input', () => {
+    const digits = editDurInput.value.replace(/\D/g, '').slice(0, 6);
+    let v = digits;
+    if (v.length > 4) v = v.slice(0,2) + ':' + v.slice(2,4) + ':' + v.slice(4);
+    else if (v.length > 2) v = v.slice(0,2) + ':' + v.slice(2);
+    editDurInput.value = v;
+    editDurInput.classList.remove('invalid');
+    editError.textContent = '';
+  });
+
+  function openEditModal(idx) {
     let history = [];
     try { const raw = localStorage.getItem(HISTORY_KEY); if (raw) history = JSON.parse(raw); } catch (e) {}
-    const el = btn.closest('.history-item');
-    el.classList.add('removing');
-    setTimeout(() => {
-      history.splice(idx, 1);
+    const item = history[idx];
+    if (!item) return;
+    editIndex = idx;
+    editTaskArea.value = item.task;
+    editDurInput.value = item.duration;
+    editDurInput.classList.remove('invalid');
+    editError.textContent = '';
+    editModal.classList.add('open');
+    editModal.setAttribute('aria-hidden', 'false');
+    editTaskArea.focus();
+  }
+
+  function closeEditModal() {
+    editModal.classList.remove('open');
+    editModal.setAttribute('aria-hidden', 'true');
+    editIndex = -1;
+  }
+
+  editSaveBtn.addEventListener('click', () => {
+    const dur = editDurInput.value.trim();
+    if (!isValidDuration(dur)) {
+      editDurInput.classList.add('invalid');
+      editError.textContent = 'HH:MM:SS の形式で入力してください（例: 00:25:30）';
+      return;
+    }
+    let history = [];
+    try { const raw = localStorage.getItem(HISTORY_KEY); if (raw) history = JSON.parse(raw); } catch (e) {}
+    if (history[editIndex]) {
+      history[editIndex].task     = editTaskArea.value.trim() || '（タスク名なし）';
+      history[editIndex].duration = dur;
       try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); } catch (e) {}
-      renderHistory();
-    }, 180);
+    }
+    closeEditModal();
+    renderHistory();
+  });
+
+  editCloseBtn.addEventListener('click',  closeEditModal);
+  editCancelBtn.addEventListener('click', closeEditModal);
+  editModal.addEventListener('click', (e) => { if (e.target === editModal) closeEditModal(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && editModal.classList.contains('open')) closeEditModal();
+  });
+
+  // ── History list click delegation ───────────────────────────
+  document.getElementById('history-list').addEventListener('click', async (e) => {
+    const delBtn  = e.target.closest('.history-delete');
+    const editBtn = e.target.closest('.history-edit');
+    if (editBtn) {
+      openEditModal(Number(editBtn.dataset.index));
+      return;
+    }
+    if (delBtn) {
+      const ok = await showConfirm('このログを削除しますか？', { confirmLabel: '削除', danger: true });
+      if (!ok) return;
+      const idx = Number(delBtn.dataset.index);
+      let history = [];
+      try { const raw = localStorage.getItem(HISTORY_KEY); if (raw) history = JSON.parse(raw); } catch (e) {}
+      const el = delBtn.closest('.history-item');
+      el.classList.add('removing');
+      setTimeout(() => {
+        history.splice(idx, 1);
+        try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); } catch (e) {}
+        renderHistory();
+      }, 180);
+    }
   });
 
   // ── Export modal ───────────────────────────────────────────
