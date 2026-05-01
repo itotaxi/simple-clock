@@ -149,6 +149,35 @@
     color: var(--fg-faint);
   }
 
+  /* top-left nav pill (FOCUS / back) */
+  .nav-pill {
+    position: fixed;
+    top: 22px;
+    left: 22px;
+    height: 38px;
+    padding: 0 16px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--fg-faint);
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    font-family: inherit;
+    cursor: pointer;
+    transition: color 200ms, background 200ms, border-color 200ms;
+    z-index: 10;
+  }
+  .nav-pill:hover {
+    color: var(--fg);
+    background: oklch(1 0 0 / 0.5);
+    border-color: var(--border);
+  }
+  .nav-pill svg { width: 14px; height: 14px; flex-shrink: 0; }
+
   /* settings button */
   .gear-btn {
     position: fixed;
@@ -173,6 +202,33 @@
     transform: rotate(45deg);
   }
   .gear-btn svg { width: 18px; height: 18px; }
+
+  /* top-right secondary button (HISTORY) */
+  .aux-btn {
+    position: fixed;
+    top: 22px;
+    right: 22px;
+    height: 38px;
+    padding: 0 16px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--fg-faint);
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    font-family: inherit;
+    cursor: pointer;
+    transition: color 200ms, background 200ms, border-color 200ms;
+    z-index: 10;
+  }
+  .aux-btn:hover {
+    color: var(--fg);
+    background: oklch(1 0 0 / 0.5);
+    border-color: var(--border);
+  }
 
   /* settings panel */
   .panel {
@@ -260,22 +316,254 @@
     transform: translateX(16px);
   }
 
-  /* dark-ish gradient-off mode keeps content readable */
-  body.bg-off {
-    background: var(--surface);
+  body.bg-off { background: var(--surface); }
+
+  /* ============================================================
+     VIEW SYSTEM
+     focus-view and history-view are position:fixed overlays.
+     The clock <main> is hidden/shown via display:none.
+  ============================================================ */
+  .view {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 280ms ease;
+  }
+  .view.active {
+    opacity: 1;
+    pointer-events: auto;
   }
 
+  /* ============ Focus View ============ */
+  .focus-view {
+    padding: 80px 24px 48px;
+    gap: 0;
+  }
+
+  .stopwatch-display {
+    font-size: clamp(52px, 12vw, 160px);
+    font-weight: 200;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--fg);
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    user-select: none;
+    flex-shrink: 0;
+  }
+  .stopwatch-display .sw-sep {
+    opacity: 0.35;
+    margin: 0 0.04em;
+    font-weight: 200;
+  }
+
+  .task-area {
+    margin-top: 44px;
+    width: 100%;
+    max-width: 600px;
+    flex-shrink: 0;
+  }
+
+  .task-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-faint);
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  .task-input {
+    width: 100%;
+    background: oklch(1 0 0 / 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 24px;
+    font-size: clamp(20px, 3vw, 28px);
+    font-weight: 300;
+    font-family: inherit;
+    color: var(--fg);
+    text-align: center;
+    resize: none;
+    outline: none;
+    line-height: 1.45;
+    min-height: 72px;
+    max-height: 160px;
+    overflow-y: auto;
+    transition: border-color 200ms, box-shadow 200ms;
+  }
+  .task-input:focus {
+    border-color: oklch(0.62 0.08 240 / 0.6);
+    box-shadow: 0 0 0 3px oklch(0.62 0.08 240 / 0.12);
+  }
+  .task-input::placeholder { color: var(--fg-faint); }
+
+  .focus-controls {
+    margin-top: 32px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .ctrl-btn {
+    height: 48px;
+    padding: 0 28px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    transition: background 150ms, box-shadow 150ms, transform 100ms;
+  }
+  .ctrl-btn:active { transform: scale(0.96); }
+
+  .ctrl-primary {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 4px 16px -4px oklch(0.62 0.08 240 / 0.45);
+    min-width: 110px;
+  }
+  .ctrl-primary:hover {
+    background: oklch(0.56 0.09 240);
+    box-shadow: 0 6px 20px -4px oklch(0.62 0.08 240 / 0.55);
+  }
+  .ctrl-primary.is-running {
+    background: oklch(0.62 0.09 25);
+    box-shadow: 0 4px 16px -4px oklch(0.62 0.09 25 / 0.45);
+  }
+  .ctrl-primary.is-running:hover {
+    background: oklch(0.55 0.1 25);
+  }
+
+  .ctrl-secondary {
+    background: oklch(1 0 0 / 0.65);
+    color: var(--fg-muted);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+  }
+  .ctrl-secondary:hover {
+    background: oklch(1 0 0 / 0.88);
+    color: var(--fg);
+  }
+
+  /* ============ History View ============ */
+  .history-view {
+    padding: 80px 24px 48px;
+    align-items: stretch;
+    overflow: hidden;
+  }
+
+  .history-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .history-heading {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--fg-faint);
+    margin-bottom: 16px;
+    flex-shrink: 0;
+  }
+
+  .history-scroll {
+    overflow-y: auto;
+    flex: 1;
+    padding-bottom: 8px;
+  }
+  .history-scroll::-webkit-scrollbar { width: 4px; }
+  .history-scroll::-webkit-scrollbar-track { background: transparent; }
+  .history-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .history-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 2px 16px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    background: oklch(1 0 0 / 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+
+  .history-task {
+    font-size: 17px;
+    font-weight: 300;
+    color: var(--fg);
+    grid-column: 1;
+    grid-row: 1;
+    word-break: break-word;
+  }
+
+  .history-duration {
+    font-size: 18px;
+    font-weight: 200;
+    font-variant-numeric: tabular-nums;
+    color: var(--fg-muted);
+    grid-column: 2;
+    grid-row: 1 / 3;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+  }
+
+  .history-date {
+    font-size: 11px;
+    color: var(--fg-faint);
+    letter-spacing: 0.06em;
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .history-empty {
+    text-align: center;
+    color: var(--fg-faint);
+    font-size: 14px;
+    padding: 60px 0;
+  }
+
+  /* responsive */
   @media (max-width: 480px) {
-    .panel { width: calc(100vw - 28px); right: 14px; }
+    .nav-pill { top: 14px; left: 14px; }
     .gear-btn { top: 14px; right: 14px; }
+    .aux-btn { top: 14px; right: 14px; }
+    .panel { width: calc(100vw - 28px); right: 14px; }
     .date { margin-top: 18px; }
+    .focus-view { padding: 70px 16px 36px; }
+    .history-view { padding: 70px 16px 36px; }
+    .ctrl-btn { height: 44px; padding: 0 22px; }
   }
 </style>
 </head>
 <body>
   <div class="bg" aria-hidden="true"><div class="blob"></div></div>
 
-  <main class="clock" role="main">
+  <!-- Clock view -->
+  <main class="clock" id="view-clock" role="main">
     <div class="time" id="time" aria-live="polite">
       <span id="hh">00</span><span class="sep">:</span><span id="mm">00</span><span class="seconds"><span class="sep">:</span><span id="ss">00</span></span>
     </div>
@@ -284,12 +572,55 @@
     </div>
   </main>
 
+  <!-- Focus view -->
+  <div class="view focus-view" id="view-focus" aria-hidden="true">
+    <div class="stopwatch-display">
+      <span id="sw-h">00</span><span class="sw-sep">:</span><span id="sw-m">00</span><span class="sw-sep">:</span><span id="sw-s">00</span>
+    </div>
+    <div class="task-area">
+      <div class="task-label">いま何に集中してる？</div>
+      <textarea class="task-input" id="task-input" rows="2" placeholder="タスクを入力…"></textarea>
+    </div>
+    <div class="focus-controls">
+      <button class="ctrl-btn ctrl-primary" id="start-stop-btn">START</button>
+      <button class="ctrl-btn ctrl-secondary" id="next-task-btn">次のタスクへ</button>
+    </div>
+  </div>
+
+  <!-- History view -->
+  <div class="view history-view" id="view-history" aria-hidden="true">
+    <div class="history-container">
+      <div class="history-heading">Focus History</div>
+      <div class="history-scroll" id="history-list"></div>
+    </div>
+  </div>
+
+  <!-- Top-left nav: FOCUS button (clock view) / back button (other views) -->
+  <button class="nav-pill" id="focus-btn" aria-label="フォーカスモードへ">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3" opacity="0.45"/>
+      <circle cx="12" cy="12" r="8" opacity="0.3"/>
+    </svg>
+    FOCUS
+  </button>
+
+  <button class="nav-pill" id="back-btn" style="display:none" aria-label="戻る">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5M12 5l-7 7 7 7"/>
+    </svg>
+    戻る
+  </button>
+
+  <!-- Top-right: gear (clock view) / HISTORY (focus view) -->
   <button class="gear-btn" id="gear" aria-label="設定" aria-expanded="false">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="3"></circle>
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
     </svg>
   </button>
+
+  <button class="aux-btn" id="history-btn" style="display:none" aria-label="履歴を見る">HISTORY</button>
 
   <div class="panel" id="panel" role="dialog" aria-label="表示設定">
     <div class="panel-header">表示設定</div>
@@ -314,6 +645,7 @@
   const pad = (n) => String(n).padStart(2, '0');
   const DOW = ['日', '月', '火', '水', '木', '金', '土'];
 
+  // ── Clock ──────────────────────────────────────────────────
   const hh = document.getElementById('hh');
   const mm = document.getElementById('mm');
   const ss = document.getElementById('ss');
@@ -329,13 +661,9 @@
     dowEl.textContent = `(${DOW[d.getDay()]})`;
   }
   tick();
-  // align to next second
-  setTimeout(() => {
-    tick();
-    setInterval(tick, 1000);
-  }, 1000 - (Date.now() % 1000));
+  setTimeout(() => { tick(); setInterval(tick, 1000); }, 1000 - (Date.now() % 1000));
 
-  // settings
+  // ── Settings ───────────────────────────────────────────────
   const STORE_KEY = 'simple-clock-settings';
   const defaults = { showSeconds: true, showBg: true };
   let state = { ...defaults };
@@ -348,7 +676,7 @@
   const rowSeconds = document.getElementById('row-seconds');
   const rowBg = document.getElementById('row-bg');
 
-  function apply() {
+  function applySettings() {
     body.classList.toggle('no-seconds', !state.showSeconds);
     body.classList.toggle('bg-off', !state.showBg);
     rowSeconds.classList.toggle('on', state.showSeconds);
@@ -357,10 +685,10 @@
     rowBg.setAttribute('aria-checked', String(state.showBg));
     try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
   }
-  apply();
+  applySettings();
 
   function bindToggle(el, key) {
-    const flip = () => { state[key] = !state[key]; apply(); };
+    const flip = () => { state[key] = !state[key]; applySettings(); };
     el.addEventListener('click', flip);
     el.addEventListener('keydown', (e) => {
       if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); }
@@ -369,26 +697,168 @@
   bindToggle(rowSeconds, 'showSeconds');
   bindToggle(rowBg, 'showBg');
 
-  // panel open/close
   const gear = document.getElementById('gear');
   const panel = document.getElementById('panel');
-  let open = false;
-  function setOpen(v) {
-    open = v;
-    panel.classList.toggle('open', open);
-    gear.setAttribute('aria-expanded', String(open));
+  let panelOpen = false;
+  function setPanelOpen(v) {
+    panelOpen = v;
+    panel.classList.toggle('open', v);
+    gear.setAttribute('aria-expanded', String(v));
   }
-  gear.addEventListener('click', (e) => {
-    e.stopPropagation();
-    setOpen(!open);
-  });
+  gear.addEventListener('click', (e) => { e.stopPropagation(); setPanelOpen(!panelOpen); });
   document.addEventListener('click', (e) => {
-    if (!open) return;
-    if (!panel.contains(e.target) && e.target !== gear) setOpen(false);
+    if (!panelOpen) return;
+    if (!panel.contains(e.target) && e.target !== gear) setPanelOpen(false);
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && open) setOpen(false);
+    if (e.key === 'Escape' && panelOpen) setPanelOpen(false);
   });
+
+  // ── View switching ─────────────────────────────────────────
+  const viewClock   = document.getElementById('view-clock');
+  const viewFocus   = document.getElementById('view-focus');
+  const viewHistory = document.getElementById('view-history');
+  const focusBtn    = document.getElementById('focus-btn');
+  const backBtn     = document.getElementById('back-btn');
+  const historyBtn  = document.getElementById('history-btn');
+
+  let currentView = 'clock';
+
+  function showView(name) {
+    const isClock   = name === 'clock';
+    const isFocus   = name === 'focus';
+    const isHistory = name === 'history';
+
+    viewClock.style.display = isClock ? '' : 'none';
+    viewFocus.classList.toggle('active', isFocus);
+    viewFocus.setAttribute('aria-hidden', String(!isFocus));
+    viewHistory.classList.toggle('active', isHistory);
+    viewHistory.setAttribute('aria-hidden', String(!isHistory));
+
+    focusBtn.style.display   = isClock  ? '' : 'none';
+    backBtn.style.display    = !isClock ? '' : 'none';
+    historyBtn.style.display = isFocus  ? '' : 'none';
+    gear.style.display       = isClock  ? '' : 'none';
+
+    if (!isClock && panelOpen) setPanelOpen(false);
+    if (isHistory) renderHistory();
+
+    currentView = name;
+  }
+
+  focusBtn.addEventListener('click', () => showView('focus'));
+  backBtn.addEventListener('click', () => {
+    showView(currentView === 'history' ? 'focus' : 'clock');
+  });
+  historyBtn.addEventListener('click', () => showView('history'));
+
+  // ── Stopwatch ──────────────────────────────────────────────
+  const HISTORY_KEY = 'simple-clock-focus-history';
+
+  let swElapsed  = 0;
+  let swRunning  = false;
+  let swTimer    = null;
+  let swStartDate = null;
+
+  const swH          = document.getElementById('sw-h');
+  const swM          = document.getElementById('sw-m');
+  const swS          = document.getElementById('sw-s');
+  const startStopBtn = document.getElementById('start-stop-btn');
+  const nextTaskBtn  = document.getElementById('next-task-btn');
+  const taskInput    = document.getElementById('task-input');
+
+  function fmtElapsed(secs) {
+    return `${pad(Math.floor(secs / 3600))}:${pad(Math.floor((secs % 3600) / 60))}:${pad(secs % 60)}`;
+  }
+
+  function updateSwDisplay() {
+    swH.textContent = pad(Math.floor(swElapsed / 3600));
+    swM.textContent = pad(Math.floor((swElapsed % 3600) / 60));
+    swS.textContent = pad(swElapsed % 60);
+  }
+
+  function todayStr() {
+    const d = new Date();
+    return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())}`;
+  }
+
+  function startSw() {
+    if (swRunning) return;
+    if (swElapsed === 0) swStartDate = todayStr();
+    swRunning = true;
+    swTimer = setInterval(() => { swElapsed++; updateSwDisplay(); }, 1000);
+    startStopBtn.textContent = 'STOP';
+    startStopBtn.classList.add('is-running');
+  }
+
+  function stopSw() {
+    if (!swRunning) return;
+    swRunning = false;
+    clearInterval(swTimer);
+    swTimer = null;
+    startStopBtn.textContent = 'START';
+    startStopBtn.classList.remove('is-running');
+  }
+
+  function resetSw() {
+    stopSw();
+    swElapsed = 0;
+    swStartDate = null;
+    updateSwDisplay();
+  }
+
+  function saveToHistory() {
+    if (swElapsed === 0) return;
+    const entry = {
+      date:     swStartDate || todayStr(),
+      duration: fmtElapsed(swElapsed),
+      task:     taskInput.value.trim() || '（タスク名なし）',
+    };
+    let history = [];
+    try { const raw = localStorage.getItem(HISTORY_KEY); if (raw) history = JSON.parse(raw); } catch (e) {}
+    history.unshift(entry);
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); } catch (e) {}
+  }
+
+  startStopBtn.addEventListener('click', () => { if (swRunning) stopSw(); else startSw(); });
+
+  nextTaskBtn.addEventListener('click', () => {
+    saveToHistory();
+    resetSw();
+    taskInput.value = '';
+    taskInput.style.height = '';
+  });
+
+  taskInput.addEventListener('input', () => {
+    taskInput.style.height = 'auto';
+    taskInput.style.height = Math.min(taskInput.scrollHeight, 160) + 'px';
+  });
+
+  // ── History rendering ──────────────────────────────────────
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function renderHistory() {
+    const list = document.getElementById('history-list');
+    let history = [];
+    try { const raw = localStorage.getItem(HISTORY_KEY); if (raw) history = JSON.parse(raw); } catch (e) {}
+    if (history.length === 0) {
+      list.innerHTML = '<div class="history-empty">まだ記録がありません</div>';
+      return;
+    }
+    list.innerHTML = history.map((item) => `
+      <div class="history-item">
+        <div class="history-task">${escHtml(item.task)}</div>
+        <div class="history-duration">${escHtml(item.duration)}</div>
+        <div class="history-date">${escHtml(item.date)}</div>
+      </div>
+    `).join('');
+  }
+
+  updateSwDisplay();
 })();
 </script>
 </body>
