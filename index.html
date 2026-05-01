@@ -379,8 +379,37 @@
     font-weight: 200;
   }
 
+  .sw-adjust {
+    margin-top: 20px;
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .adj-btn {
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    background: oklch(1 0 0 / 0.5);
+    color: var(--fg-muted);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 140ms, color 140ms, border-color 140ms;
+    white-space: nowrap;
+  }
+  .adj-btn:hover {
+    background: oklch(1 0 0 / 0.88);
+    color: var(--fg);
+    border-color: oklch(0.75 0.005 250);
+  }
+  .adj-btn:active { transform: scale(0.95); }
+
   .task-area {
-    margin-top: 44px;
+    margin-top: 28px;
     width: 100%;
     max-width: 600px;
     flex-shrink: 0;
@@ -742,6 +771,14 @@
     <div class="stopwatch-display">
       <span id="sw-h">00</span><span class="sw-sep">:</span><span id="sw-m">00</span><span class="sw-sep">:</span><span id="sw-s">00</span>
     </div>
+    <div class="sw-adjust">
+      <button class="adj-btn" data-delta="-600">－10分</button>
+      <button class="adj-btn" data-delta="-300">－5分</button>
+      <button class="adj-btn" data-delta="-60">－1分</button>
+      <button class="adj-btn" data-delta="60">＋1分</button>
+      <button class="adj-btn" data-delta="300">＋5分</button>
+      <button class="adj-btn" data-delta="600">＋10分</button>
+    </div>
     <div class="task-area">
       <div class="task-label">いま何に集中してる？</div>
       <textarea class="task-input" id="task-input" rows="2" placeholder="タスクを入力…"></textarea>
@@ -1006,6 +1043,15 @@
   }
 
   startStopBtn.addEventListener('click', () => { if (swRunning) stopSw(); else startSw(); });
+
+  document.querySelector('.sw-adjust').addEventListener('click', (e) => {
+    const btn = e.target.closest('.adj-btn');
+    if (!btn) return;
+    const delta = Number(btn.dataset.delta);
+    swElapsed = Math.max(0, swElapsed + delta);
+    if (swElapsed === 0) swStartDate = null;
+    updateSwDisplay();
+  });
 
   nextTaskBtn.addEventListener('click', () => {
     saveToHistory();
