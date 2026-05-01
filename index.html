@@ -590,6 +590,124 @@
     padding: 60px 0;
   }
 
+  .history-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+  }
+
+  .export-btn {
+    height: 28px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    background: oklch(1 0 0 / 0.6);
+    color: var(--fg-muted);
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 150ms, color 150ms;
+  }
+  .export-btn:hover {
+    background: oklch(1 0 0 / 0.9);
+    color: var(--fg);
+  }
+
+  /* export modal */
+  .export-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: oklch(0.2 0.01 250 / 0.3);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 220ms ease;
+  }
+  .export-modal.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .export-dialog {
+    width: 100%;
+    max-width: 560px;
+    max-height: calc(100vh - 80px);
+    background: oklch(1 0 0 / 0.92);
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: 0 24px 60px -16px oklch(0.2 0.02 250 / 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: translateY(8px) scale(0.98);
+    transition: transform 220ms ease;
+  }
+  .export-modal.open .export-dialog {
+    transform: translateY(0) scale(1);
+  }
+
+  .export-dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 12px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .export-dialog-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--fg-muted);
+  }
+  .export-close {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: var(--fg-faint);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: color 150ms, background 150ms;
+  }
+  .export-close:hover {
+    color: var(--fg);
+    background: var(--surface-2);
+  }
+  .export-close svg { width: 14px; height: 14px; }
+
+  .export-textarea {
+    flex: 1;
+    width: 100%;
+    min-height: 280px;
+    max-height: 60vh;
+    padding: 20px;
+    font-size: 14px;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 300;
+    line-height: 1.8;
+    color: var(--fg);
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: none;
+  }
+
   /* responsive */
   @media (max-width: 480px) {
     .nav-pill { top: 14px; left: 14px; }
@@ -637,8 +755,24 @@
   <!-- History view -->
   <div class="view history-view" id="view-history" aria-hidden="true">
     <div class="history-container">
-      <div class="history-heading">Focus History</div>
+      <div class="history-toolbar">
+        <div class="history-heading" style="margin-bottom:0">Focus History</div>
+        <button class="export-btn" id="export-btn">エクスポート</button>
+      </div>
       <div class="history-scroll" id="history-list"></div>
+    </div>
+  </div>
+
+  <!-- Export modal -->
+  <div class="export-modal" id="export-modal" aria-hidden="true">
+    <div class="export-dialog">
+      <div class="export-dialog-header">
+        <span class="export-dialog-title">エクスポート</span>
+        <button class="export-close" id="export-close" aria-label="閉じる">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <textarea class="export-textarea" id="export-textarea" readonly spellcheck="false"></textarea>
     </div>
   </div>
 
@@ -925,6 +1059,48 @@
       try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); } catch (e) {}
       renderHistory();
     }, 180);
+  });
+
+  // ── Export modal ───────────────────────────────────────────
+  const exportModal   = document.getElementById('export-modal');
+  const exportBtn     = document.getElementById('export-btn');
+  const exportClose   = document.getElementById('export-close');
+  const exportTextarea = document.getElementById('export-textarea');
+
+  function formatExport(history) {
+    const groups = new Map();
+    for (const item of history) {
+      if (!groups.has(item.date)) groups.set(item.date, []);
+      groups.get(item.date).push(item);
+    }
+    return Array.from(groups.entries())
+      .map(([date, items]) =>
+        date + '\n' + items.map(item => `・${item.task}　${item.duration}`).join('\n')
+      )
+      .join('\n\n');
+  }
+
+  function openExportModal() {
+    let history = [];
+    try { const raw = localStorage.getItem(HISTORY_KEY); if (raw) history = JSON.parse(raw); } catch (e) {}
+    exportTextarea.value = history.length > 0 ? formatExport(history) : '';
+    exportModal.classList.add('open');
+    exportModal.setAttribute('aria-hidden', 'false');
+    exportTextarea.select();
+  }
+
+  function closeExportModal() {
+    exportModal.classList.remove('open');
+    exportModal.setAttribute('aria-hidden', 'true');
+  }
+
+  exportBtn.addEventListener('click', openExportModal);
+  exportClose.addEventListener('click', closeExportModal);
+  exportModal.addEventListener('click', (e) => {
+    if (e.target === exportModal) closeExportModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && exportModal.classList.contains('open')) closeExportModal();
   });
 
   updateSwDisplay();
