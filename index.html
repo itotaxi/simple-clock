@@ -345,6 +345,21 @@
     gap: 0;
   }
 
+  .focus-clock {
+    font-size: clamp(22px, 4vw, 42px);
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    color: var(--fg-muted);
+    user-select: none;
+    margin-bottom: 28px;
+    flex-shrink: 0;
+  }
+  .focus-clock .fc-sep {
+    opacity: 0.45;
+    margin: 0 0.08em;
+  }
+
   .stopwatch-display {
     font-size: clamp(52px, 12vw, 160px);
     font-weight: 200;
@@ -574,6 +589,9 @@
 
   <!-- Focus view -->
   <div class="view focus-view" id="view-focus" aria-hidden="true">
+    <div class="focus-clock">
+      <span id="fc-hh">00</span><span class="fc-sep">:</span><span id="fc-mm">00</span>
+    </div>
     <div class="stopwatch-display">
       <span id="sw-h">00</span><span class="sw-sep">:</span><span id="sw-m">00</span><span class="sw-sep">:</span><span id="sw-s">00</span>
     </div>
@@ -651,6 +669,8 @@
   const ss = document.getElementById('ss');
   const dateEl = document.getElementById('date');
   const dowEl = document.getElementById('dow');
+  const fcHH = document.getElementById('fc-hh');
+  const fcMM = document.getElementById('fc-mm');
 
   function tick() {
     const d = new Date();
@@ -659,6 +679,8 @@
     ss.textContent = pad(d.getSeconds());
     dateEl.textContent = `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())}`;
     dowEl.textContent = `(${DOW[d.getDay()]})`;
+    fcHH.textContent = pad(d.getHours());
+    fcMM.textContent = pad(d.getMinutes());
   }
   tick();
   setTimeout(() => { tick(); setInterval(tick, 1000); }, 1000 - (Date.now() % 1000));
