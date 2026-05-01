@@ -792,6 +792,84 @@
     .history-view { padding: 70px 16px 36px; }
     .ctrl-btn { height: 44px; padding: 0 22px; }
   }
+
+  /* ── Dark mode ─────────────────────────────────────────────── */
+  body { transition: background-color 400ms ease; }
+
+  body.dark {
+    --fg:       oklch(0.92 0.006 250);
+    --fg-muted: oklch(0.62 0.006 250);
+    --fg-faint: oklch(0.40 0.008 250);
+    --surface:  oklch(0.13 0.01 250);
+    --surface-2:oklch(0.19 0.01 250);
+    --border:   oklch(0.28 0.012 250);
+    --accent:   oklch(0.68 0.10 240);
+    color-scheme: dark;
+  }
+
+  body.dark .bg::before {
+    background: radial-gradient(circle at 30% 30%, oklch(0.28 0.07 240 / 0.6), transparent 60%);
+  }
+  body.dark .bg::after {
+    background: radial-gradient(circle at 60% 60%, oklch(0.26 0.06 320 / 0.55), transparent 60%);
+  }
+  body.dark .bg .blob {
+    background: radial-gradient(circle, oklch(0.22 0.05 180 / 0.45), transparent 60%);
+  }
+
+  body.dark .panel {
+    background: oklch(0.18 0.01 250 / 0.92);
+  }
+  body.dark .row:hover {
+    background: oklch(0.28 0.01 250 / 0.7);
+  }
+  body.dark .toggle {
+    background: oklch(0.32 0.01 250);
+  }
+
+  body.dark .nav-pill:hover,
+  body.dark .aux-btn:hover,
+  body.dark .gear-btn:hover,
+  body.dark .sw-chevron:hover {
+    background: oklch(0.28 0.01 250 / 0.7);
+  }
+
+  body.dark .task-input {
+    background: oklch(0.19 0.01 250 / 0.8);
+  }
+
+  body.dark .history-item {
+    background: oklch(0.19 0.01 250 / 0.65);
+  }
+
+  body.dark .adj-btn {
+    background: oklch(0.19 0.01 250 / 0.65);
+  }
+
+  body.dark .ctrl-secondary {
+    background: oklch(0.22 0.01 250 / 0.7);
+  }
+
+  body.dark .export-btn {
+    background: oklch(0.22 0.01 250 / 0.65);
+  }
+
+  body.dark .export-modal {
+    background: oklch(0.08 0.01 250 / 0.55);
+  }
+
+  body.dark .export-dialog {
+    background: oklch(0.16 0.01 250 / 0.96);
+    box-shadow: 0 24px 60px -16px oklch(0 0 0 / 0.5);
+  }
+
+  body.dark .export-close:hover {
+    background: oklch(0.28 0.01 250 / 0.7);
+  }
+
+  body.dark .history-delete:hover {
+    background: oklch(0.55 0.1 25 / 0.15);
+  }
 </style>
 </head>
 <body>
@@ -905,6 +983,13 @@
       </div>
       <div class="toggle" aria-hidden="true"></div>
     </div>
+    <div class="row" id="row-dark" role="switch" aria-checked="false" tabindex="0">
+      <div>
+        <div class="row-label">ダークモード</div>
+        <div class="row-hint">暗い配色に切り替え</div>
+      </div>
+      <div class="toggle" aria-hidden="true"></div>
+    </div>
   </div>
 
 <script>
@@ -936,7 +1021,7 @@
 
   // ── Settings ───────────────────────────────────────────────
   const STORE_KEY = 'simple-clock-settings';
-  const defaults = { showSeconds: true, showBg: true };
+  const defaults = { showSeconds: true, showBg: true, darkMode: false };
   let state = { ...defaults };
   try {
     const raw = localStorage.getItem(STORE_KEY);
@@ -945,15 +1030,19 @@
 
   const body = document.body;
   const rowSeconds = document.getElementById('row-seconds');
-  const rowBg = document.getElementById('row-bg');
+  const rowBg      = document.getElementById('row-bg');
+  const rowDark    = document.getElementById('row-dark');
 
   function applySettings() {
     body.classList.toggle('no-seconds', !state.showSeconds);
-    body.classList.toggle('bg-off', !state.showBg);
+    body.classList.toggle('bg-off',     !state.showBg);
+    body.classList.toggle('dark',        state.darkMode);
     rowSeconds.classList.toggle('on', state.showSeconds);
     rowSeconds.setAttribute('aria-checked', String(state.showSeconds));
     rowBg.classList.toggle('on', state.showBg);
     rowBg.setAttribute('aria-checked', String(state.showBg));
+    rowDark.classList.toggle('on', state.darkMode);
+    rowDark.setAttribute('aria-checked', String(state.darkMode));
     try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
   }
   applySettings();
@@ -966,7 +1055,8 @@
     });
   }
   bindToggle(rowSeconds, 'showSeconds');
-  bindToggle(rowBg, 'showBg');
+  bindToggle(rowBg,      'showBg');
+  bindToggle(rowDark,    'darkMode');
 
   const gear = document.getElementById('gear');
   const panel = document.getElementById('panel');
